@@ -1,0 +1,42 @@
+---
+const {code, name, creditHours, prerequisites = []} = Astro.props;
+---
+
+<div
+        id={code}
+        data-code={code}
+        data-prerequisites={prerequisites.join(',')}
+        class="sticky-note relative font-sketch bg-lime-200 shadow w-40 h-40 p-3 text-lg hover:bg-blue-100 transition-all"
+>
+    <h1 class="font-bold">{code}</h1>
+    <p class="line-clamp-3">{name}</p>
+    <p class="text-sm absolute bottom-3 right-3 opacity-60">{creditHours} Cr.</p>
+</div>
+
+<script define:vars={{code, prerequisites}}>
+    function highlightStickyNotes(note) {
+        if (!note || !note.dataset.prerequisites) return;
+
+        const idList = note.dataset.prerequisites.split(',').filter(Boolean);
+        document.querySelectorAll('.sticky-note').forEach((otherNote) => {
+            if (idList.includes(otherNote.dataset.code)) {
+                otherNote.classList.add('bg-orange-300');
+                highlightStickyNotes(otherNote);
+            }
+        });
+    }
+
+    function resetHighlightedStickyNotes() {
+        document.querySelectorAll('.sticky-note').forEach((note) => {
+            note.classList.remove('bg-orange-300');
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const note = document.getElementById(code);
+        if (!note) return;
+
+        note.addEventListener('mouseenter', () => highlightStickyNotes(note));
+        note.addEventListener('mouseleave', resetHighlightedStickyNotes);
+    });
+</script>
