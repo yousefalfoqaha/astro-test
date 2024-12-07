@@ -1,17 +1,30 @@
 ---
-import type { GuideCourse } from "../pages/index.astro";
+import type {GuideCourse} from "../types";
 import CourseStickyNote from "./CourseStickyNote.astro";
+import {$studyPlan} from "../stores/studyPlan";
 
-const {semester, semesterCourses, courseDetails} = Astro.props;
+const {semester, semesterCourses} = Astro.props;
+
+const studyPlan = $studyPlan.get();
+if (!studyPlan) return;
+
+const {courses} = studyPlan;
 ---
 
 <div>
     <h1 class="font-sketch opacity-80 text-center">{semester}</h1>
     <div class="flex flex-col gap-2">
         {semesterCourses.map((semesterCourse: GuideCourse) => {
-            const course = courseDetails[semesterCourse.courseId];
+            const course = courses[semesterCourse.course];
             if (!course) return;
-            return <CourseStickyNote key={course.code} {...course}/>
+            return <CourseStickyNote
+                    key={course.id}
+                    id={course.id}
+                    code={course.code}
+                    name={course.name}
+                    creditHours={course.creditHours}
+                    prerequisites={course.prerequisites}
+            />
         })}
     </div>
 </div>

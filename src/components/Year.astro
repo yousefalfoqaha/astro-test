@@ -1,22 +1,24 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import {Semester as SemesterTypes, type GuideCourse} from "../pages/index.astro";
+import {SemesterType, type GuideCourse} from "../types";
 import Semester from "./Semester.astro";
 
-const {year, courseDetails, yearCourses} = Astro.props;
+const {year, yearCourses} = Astro.props;
 ---
 
 <Layout>
     <div>
         <h1 class="font-sketch font-bold text-center">{year}/{year + 1}</h1>
         <div class="flex flex-row gap-2">
-            {Object.values(SemesterTypes).map((semester) => {
-                const semesterCourses = yearCourses.filter((c: GuideCourse) => c.semester === semester)
+            {Object.values(SemesterType).map((semester) => {
+                const semesterCourses = yearCourses.filter((c: GuideCourse) =>
+                    c.semester === semester.toUpperCase()
+                );
+
                 if (semesterCourses.length === 0) return;
                 return <Semester
                         key={semester}
                         semesterCourses={semesterCourses}
-                        courseDetails={courseDetails}
                         semester={semester}
                 />
             })}

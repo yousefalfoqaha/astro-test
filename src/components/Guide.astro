@@ -1,27 +1,69 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import Year from "./Year.astro";
-import type {GuideCourse} from "../pages/index.astro";
+import {$studyPlan, fetchStudyPlan} from "../stores/studyPlan";
 
-const {program, studyPlan} = Astro.props;
+await fetchStudyPlan(1);
+
+const studyPlan = $studyPlan.get();
+if (!studyPlan) return;
+
 const years = Array.from({length: studyPlan.duration}, (_, i) => i + 1);
-const guideCourses = Object.values(studyPlan.guideCourses) as GuideCourse[];
+const guideCourses = Object.values(studyPlan.guideCourses);
 ---
 
 <Layout>
     <div class="flex flex-col gap-5">
-        <h1 class="font-sketch text-2xl">{program.degree} {program.name}</h1>
         <div class="flex flex-row gap-8">
             {years.map((yr) => {
-                const yearCourses = guideCourses.filter((c: GuideCourse) => c.year === yr);
+                const yearCourses = guideCourses.filter(c => c.year === yr);
                 if (yearCourses.length === 0) return;
                 return <Year
                         key={yr}
                         year={studyPlan.startAcademicYear + yr - 1}
                         yearCourses={yearCourses}
-                        courseDetails={studyPlan.courses}
                 />
             })}
         </div>
     </div>
 </Layout>
+
+<script define:vars={{studyPlan}}>
+    function highlightPrerequisiteNotes(currentCourse, visited = new Set()) {
+        if (!currentCourse || !currentCourse.prerequisites || visited.has(currentCourse.id)) return;
+
+        visited.add(currentCourse.id);
+
+        Object.entries(currentCourse.prerequisites).forEach(([key, value]) => {
+            if (value.relation === "OR") return;
+
+            const prerequisiteNote = document.getElementById(`note-${key}`);
+            if (!prerequisiteNote) return;
+
+            prerequisiteNote.classList.add("bg-orange-300");
+
+            const prerequisiteCourse = studyPlan.courses[parseInt(key)];
+            if (!prerequisiteCourse) return;
+
+            highlightPrerequisiteNotes(prerequisiteCourse, visited);
+        })
+    }
+
+    function resetHighlightedNotes() {
+        document.querySelectorAll('.sticky-note').forEach((note) => {
+            note.classList.remove('bg-orange-300');
+        });
+    }
+
+    document.querySelectorAll('.sticky-note').forEach(note => {
+        note.addEventListener('mouseenter', () => {
+            const currentCourseId = parseInt(note.id.replace('note-', ''), 10);
+            const currentCourse = studyPlan.courses[currentCourseId];
+            if (!currentCourse) return;
+
+            highlightPrerequisiteNotes(currentCourse);
+        });
+
+        note.addEventListener('mouseleave', resetHighlightedNotes);
+    });
+</script>
