@@ -1,12 +1,28 @@
 ---
-const {id, code, name, creditHours} = Astro.props;
+const {id, code, name, creditHours, prerequisites} = Astro.props;
 ---
 
-<div
-        id={`note-${id}`}
-        class="sticky-note relative font-sketch bg-lime-200 shadow w-40 h-40 p-3 text-lg hover:bg-blue-100 transition-all"
+<sticky-note
+    data-sticky-note-id={id}
+    data-prerequisites={JSON.stringify(prerequisites)}
 >
-    <h1 class="font-bold">{code}</h1>
-    <p class="line-clamp-3">{name}</p>
-    <p class="text-sm absolute bottom-3 right-3 opacity-60">{creditHours} Cr.</p>
-</div>
+    <div class="sticky-note relative font-sketch bg-lime-200 shadow w-40 h-40 p-3 text-lg hover:bg-blue-100 transition-all">
+        <h1 class="font-bold">{code}</h1>
+        <p class="line-clamp-3">{name}</p>
+        <p class="text-sm absolute bottom-3 right-3 opacity-60">{creditHours} Cr.</p>
+    </div>
+</sticky-note>
+
+<script>
+    class StickyNote extends HTMLElement {
+        connectedCallback() {
+            const prerequisites = JSON.parse(this.dataset.prerequisites || '[]');
+
+            this.addEventListener('mouseenter', e => {
+                console.log(Object.keys(prerequisites));
+            });
+        }
+    }
+
+    customElements.define('sticky-note', StickyNote);
+</script>
